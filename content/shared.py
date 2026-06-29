@@ -120,7 +120,16 @@ def _district_related(slug: str) -> str:
     items.append(_li("/gyeonggi/use/", "이용 장소별 확인사항 보기"))
     items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
     dong = "·".join(d["dongs"][:6])
-    intro = f"{cname} {d['name']}의 대표 행정동은 {dong} 등입니다. 같은 시의 다른 일반구·생활권·역세권과 함께 확인하세요."
+    reg = data.REGIONS[data.CITIES[city]["region"]]["name"]
+    lifes = "·".join(E.LIFE[x]["name"] for x in E.city_life(city)) or "주요 생활권"
+    stns = "·".join(E.STATIONS[x]["name"] for x in E.city_stations(city)) \
+        or "·".join(data.CITIES[city]["stations"]) or "차량 이동 중심"
+    intro = (
+        f"{cname} {d['name']}은(는) {reg}에 속한 {cname}의 일반구로, 대표 행정동은 {dong} 등입니다. "
+        f"{cname}의 대표 생활권은 {lifes}이고 가까운 역으로는 {stns}이 있습니다. "
+        f"같은 시의 다른 일반구와 생활권·역세권을 함께 보면 동선을 잡기 쉽고, "
+        f"실제 방문 가능 여부는 예약 시 정확한 위치와 시간을 기준으로 확인합니다."
+    )
     return (
         '<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
         f'<p>{intro}</p>\n<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n'
@@ -143,9 +152,18 @@ def _life_related(slug: str) -> str:
     items.append(_li("/gyeonggi/life/", "다른 생활권 안내 보기"))
     items.append(_li("/gyeonggi/use/", "이용 장소별 확인사항 보기"))
     items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
+    reg = data.REGIONS[data.CITIES[city]["region"]]["name"]
+    stns = "·".join(E.STATIONS[x]["name"] for x in E.city_stations(city)) \
+        or "·".join(data.CITIES[city]["stations"]) or "차량 이동 중심"
+    intro = (
+        f"{lf['name']} 생활권은 {reg} {cname}을 중심으로 한 {lf['kind']}형 생활권입니다. "
+        f"{cname}의 가까운 역으로는 {stns}이 있고, 인접 생활권·행정구와 이동 동선이 이어집니다. "
+        f"생활권은 방문 동선과 확인사항이 비슷한 지역을 묶은 단위이며, 자택·호텔·오피스텔·업무지구 등 "
+        f"이용 장소별 확인사항과 함께 보시면 준비가 수월합니다. 실제 방문 가능 여부는 예약 시 위치와 시간 기준으로 확인합니다."
+    )
     return (
         '<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
-        f'<p>{lf["name"]} 생활권은 {cname} 중심의 {lf["kind"]}형 생활권입니다. 인근 시군·역세권·이용 장소 안내와 함께 확인하세요.</p>\n'
+        f'<p>{intro}</p>\n'
         f'<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n'
     )
 
@@ -166,9 +184,20 @@ def _station_related(slug: str) -> str:
     items.append(_li("/gyeonggi/station/", "다른 역세권 안내 보기"))
     items.append(_li("/gyeonggi/use/", "이용 장소별 확인사항 보기"))
     items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
+    reg = data.REGIONS[data.CITIES[city]["region"]]["name"]
+    lifes = "·".join(E.LIFE[x]["name"] for x in E.city_life(city)) or f"{cname} 주요 생활권"
+    others = "·".join(E.STATIONS[x]["name"] for x in E.city_stations(city) if x != slug)
+    intro = (
+        f"{st['name']}은(는) {reg} {cname}의 역세권입니다. {cname}의 대표 생활권은 {lifes}이며"
+        + (f", 같은 {cname}의 다른 역으로는 {others}이 있습니다" if others else "")
+        + ". 출구별로 페이지를 나누지 않고 한 역을 하나의 안내로 다루며, 환승역이라도 노선별로 구역을 쪼개지 않습니다. "
+        f"{cname}은(는) {data.CITIES[city]['focus']} 이런 특성을 고려해 방문 동선을 잡으며, "
+        f"자택·호텔·오피스텔 등 머무시는 장소에 따라 출입 방식이 다르므로 예약 시 건물 형태를 함께 알려주시면 좋습니다. "
+        f"방문 위치는 역 자체가 아니라 실제 도착지 주소와 예약 시간을 기준으로 확인합니다."
+    )
     return (
         '<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
-        f'<p>{st["name"]}은(는) {cname} 역세권입니다. 출구별로 페이지를 나누지 않으며, 방문 위치는 실제 도착지 주소 기준으로 확인합니다.</p>\n'
+        f'<p>{intro}</p>\n'
         f'<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n'
     )
 
