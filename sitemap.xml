@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/home/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/hotel/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/officetel/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/business-district/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/night/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/newtown/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/outer-area/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/use/station-area/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/check/address/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/check/building-access/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/check/travel-fee/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/check/time/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/check/privacy/</loc></url>
+  <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/check/service-policy/</loc></url>
   <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/area/south/</loc></url>
   <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/area/north/</loc></url>
   <url><loc>https://www.gyeonggi-massage.example.com/gyeonggi/area/west/</loc></url>

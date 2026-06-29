@@ -29,6 +29,7 @@ def _topic_related(kind, slug):
     """이용 장소/예약 전 확인 상세 페이지 하단 관련 링크."""
     hub = "/gyeonggi/use/" if kind == "use" else "/gyeonggi/check/"
     lst = _USE if kind == "use" else _CHECK
+    label = next((l for s, l, _ in lst if s == slug), "")
     head = "이용 장소 전체 보기" if kind == "use" else "예약 전 확인 전체 보기"
     items = [_li(hub, head)]
     for s, l, _ in lst:
@@ -39,7 +40,17 @@ def _topic_related(kind, slug):
     items.append(_li(*cross))
     items.append(_li("/gyeonggi/cities/", "경기 시군별 안내 보기"))
     items.append(_li("/gyeonggi/area/", "경기 권역별 안내 보기"))
+    if kind == "use":
+        intro = (f"{label}은(는) 경기도 방문형 관리에서 자주 확인되는 이용 장소 유형입니다. 같은 경기도라도 "
+                 "수원 광교·영통, 성남 분당·판교, 고양 일산 같은 신도시와 역세권, 그리고 양평·가평·이천 같은 외곽 생활권은 "
+                 "건물 출입과 주차, 이동 시간 조건이 서로 다릅니다. 아래에서 다른 이용 장소와 예약 전 확인 항목, "
+                 "시군·권역별 안내를 함께 살펴보면 방문 전 준비에 도움이 됩니다.")
+    else:
+        intro = (f"{label}은(는) 경기도에서 예약 전에 미리 확인하면 좋은 항목입니다. 수원·성남·고양 등 시군과 "
+                 "신도시·역세권·외곽 생활권마다 방문 환경이 달라 같은 항목이라도 확인 포인트가 조금씩 다릅니다. "
+                 "아래에서 다른 예약 전 확인 항목과 이용 장소별 안내, 시군·권역 안내를 함께 살펴보시면 방문 준비가 수월합니다.")
     return ('<section class="related">\n<h2>관련 안내 함께 보기</h2>\n'
+            f'<p>{intro}</p>\n'
             f'<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n')
 
 
