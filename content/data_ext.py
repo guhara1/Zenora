@@ -126,3 +126,55 @@ def city_life(city_slug):
 
 def city_stations(city_slug):
     return [s for s in STATION_ORDER if STATIONS[s]["city"] == city_slug]
+
+
+# ── 대표 행정동 (핵심 우선 공개분) ─────────────────────────
+# 지시서 §27: 전체 읍면동을 한 번에 색인하지 않고 핵심 대표동부터 공개.
+# key = "{gu}/{dong-slug}" (gu slug 는 전국에서 유일하므로 충돌 없음)
+DONGS = [
+    dict(city="suwon", gu="jangan-gu", slug="jeongja-dong", name="정자동"),
+    dict(city="suwon", gu="gwonseon-gu", slug="homaesil-dong", name="호매실동"),
+    dict(city="suwon", gu="paldal-gu", slug="ingye-dong", name="인계동"),
+    dict(city="suwon", gu="paldal-gu", slug="maesan-dong", name="매산동"),
+    dict(city="suwon", gu="paldal-gu", slug="haenggung-dong", name="행궁동"),
+    dict(city="suwon", gu="yeongtong-gu", slug="yeongtong-dong", name="영통동"),
+    dict(city="suwon", gu="yeongtong-gu", slug="gwanggyo-dong", name="광교동"),
+    dict(city="suwon", gu="yeongtong-gu", slug="mangpo-dong", name="망포동"),
+    dict(city="seongnam", gu="bundang-gu", slug="seohyeon-dong", name="서현동"),
+    dict(city="seongnam", gu="bundang-gu", slug="jeongja-dong", name="정자동"),
+    dict(city="seongnam", gu="bundang-gu", slug="pangyo-dong", name="판교동"),
+    dict(city="seongnam", gu="bundang-gu", slug="yatap-dong", name="야탑동"),
+    dict(city="seongnam", gu="sujeong-gu", slug="wirye-dong", name="위례동"),
+    dict(city="seongnam", gu="jungwon-gu", slug="sangdaewon-dong", name="상대원동"),
+    dict(city="yongin", gu="suji-gu", slug="jukjeon-dong", name="죽전동"),
+    dict(city="yongin", gu="suji-gu", slug="pungdeokcheon-dong", name="풍덕천동"),
+    dict(city="yongin", gu="suji-gu", slug="dongcheon-dong", name="동천동"),
+    dict(city="yongin", gu="giheung-gu", slug="dongbaek-dong", name="동백동"),
+    dict(city="yongin", gu="giheung-gu", slug="bojeong-dong", name="보정동"),
+    dict(city="goyang", gu="ilsandong-gu", slug="jeongbalsan-dong", name="정발산동"),
+    dict(city="goyang", gu="ilsandong-gu", slug="baekseok-dong", name="백석동"),
+    dict(city="goyang", gu="ilsanseo-gu", slug="juyeop-dong", name="주엽동"),
+    dict(city="goyang", gu="ilsanseo-gu", slug="daehwa-dong", name="대화동"),
+    dict(city="goyang", gu="deogyang-gu", slug="hwajeong-dong", name="화정동"),
+    dict(city="goyang", gu="deogyang-gu", slug="samsong-dong", name="삼송동"),
+    dict(city="bucheon", gu="wonmi-gu", slug="jung-dong", name="중동"),
+    dict(city="bucheon", gu="wonmi-gu", slug="sang-dong", name="상동"),
+    dict(city="ansan", gu="danwon-gu", slug="gojan-dong", name="고잔동"),
+    dict(city="ansan", gu="danwon-gu", slug="choji-dong", name="초지동"),
+    dict(city="anyang", gu="dongan-gu", slug="pyeongchon-dong", name="평촌동"),
+    dict(city="anyang", gu="dongan-gu", slug="beomgye-dong", name="범계동"),
+]
+for _d in DONGS:
+    _d["key"] = f"{_d['gu']}/{_d['slug']}"
+DONG_ORDER = [d["key"] for d in DONGS]
+DONG_BY_KEY = {d["key"]: d for d in DONGS}
+assert len(DONG_BY_KEY) == len(DONGS), "dong key 충돌"
+
+
+def dong_url(key):
+    d = DONG_BY_KEY[key]
+    return f"/gyeonggi/{d['city']}/{d['gu']}/{d['slug']}/"
+
+
+def gu_dongs(gu_slug):
+    return [d["key"] for d in DONGS if d["gu"] == gu_slug]

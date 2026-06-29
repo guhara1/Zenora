@@ -109,6 +109,9 @@ def _district_related(slug: str) -> str:
     city = d["city"]
     cname = data.city_display(city)
     items = [_li(data.city_url(city), f"{cname} 시 전체 지역 안내 보기")]
+    # 이 일반구의 공개된 대표 행정동으로 직접 연결
+    for k in E.gu_dongs(slug):
+        items.append(_li(E.dong_url(k), f"{cname} {d['name']} {E.DONG_BY_KEY[k]['name']} 안내 보기"))
     for g in E.city_districts(city):
         if g == slug:
             continue
@@ -204,3 +207,35 @@ def _station_related(slug: str) -> str:
 
 def assemble_station(slug: str, unique_html: str) -> str:
     return unique_html + _station_related(slug) + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA
+
+
+# ── 대표 행정동 상세 조립 ──────────────────────────────────
+def _dong_related(key: str) -> str:
+    d = E.DONG_BY_KEY[key]
+    city, gu = d["city"], d["gu"]
+    cname = data.city_display(city)
+    guname = E.DISTRICTS[gu]["name"]
+    items = [_li(data.city_url(city), f"{cname} 시 전체 지역 안내 보기"),
+             _li(E.district_url(gu), f"{cname} {guname} 행정구 안내 보기")]
+    for k in E.gu_dongs(gu):
+        if k == key:
+            continue
+        items.append(_li(E.dong_url(k), f"{cname} {guname} {E.DONG_BY_KEY[k]['name']} 안내 보기"))
+    for lf in E.city_life(city):
+        items.append(_li(E.life_url(lf), f"{E.LIFE[lf]['name']} 생활권 안내 보기"))
+    for st in E.city_stations(city):
+        items.append(_li(E.station_url(st), f"{E.STATIONS[st]['name']} 역세권 안내 보기"))
+    items.append(_li("/gyeonggi/use/", "이용 장소별 확인사항 보기"))
+    items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
+    reg = data.REGIONS[data.CITIES[city]["region"]]["name"]
+    intro = (
+        f"{d['name']}은(는) {reg} {cname} {guname}에 속한 행정동입니다. 번호로 나뉜 행정동은 대표동으로 묶어 "
+        f"안내하며, 같은 {guname}의 다른 대표 행정동과 {cname}의 생활권·역세권을 함께 보시면 동선을 잡기 쉽습니다. "
+        f"실제 방문 가능 여부는 예약 시 정확한 주소와 시간을 기준으로 확인합니다."
+    )
+    return ('<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
+            f'<p>{intro}</p>\n<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n')
+
+
+def assemble_dong(key: str, unique_html: str) -> str:
+    return unique_html + _dong_related(key) + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA

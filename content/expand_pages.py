@@ -93,3 +93,43 @@ def station_pages():
             "breadcrumb": [("지하철역", "/gyeonggi/station/"), (st["name"], None)],
         })
     return pages
+
+
+# ── 대표 행정동 상세 (generated4.json) ─────────────────────
+from .shared import assemble_dong  # noqa: E402
+
+_GEN4_PATH = os.path.join(_HERE, "generated4.json")
+
+
+def _load4():
+    if not os.path.exists(_GEN4_PATH):
+        return {}
+    raw = json.load(open(_GEN4_PATH, encoding="utf-8"))
+    return {x["slug"]: x for x in raw.get("dongs", [])}
+
+
+_GEN4 = _load4()
+
+
+def dong_pages():
+    pages = []
+    for key in E.DONG_ORDER:
+        d = E.DONG_BY_KEY[key]
+        city, gu = d["city"], d["gu"]
+        cname = data.city_display(city)
+        guname = E.DISTRICTS[gu]["name"]
+        gen = _GEN4.get(key)
+        unique = gen["body_html"] if gen else _ph(f"{cname} {guname} {d['name']}")
+        extra = faqpage_jsonld(gen["faqs"]) if gen else ""
+        pages.append({
+            "path": f"gyeonggi/{city}/{gu}/{d['slug']}/",
+            "title": f"{d['name']} 출장마사지·홈타이 | {cname} {guname} 생활권 안내",
+            "desc": _clip(f"{cname} {guname} {d['name']} 출장마사지·홈타이 안내. 생활권과 예약 전 확인사항을 정리했습니다."),
+            "h1": f"{d['name']} 출장마사지 · {cname} {guname} 생활권 안내",
+            "body": assemble_dong(key, unique),
+            "extra_head": extra,
+            "breadcrumb": [("시군 안내", "/gyeonggi/cities/"),
+                           (cname, data.city_url(city)),
+                           (guname, E.district_url(gu)), (d["name"], None)],
+        })
+    return pages

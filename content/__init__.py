@@ -8,4 +8,5 @@ PAGES = (
     + expand_pages.district_pages()
     + expand_pages.life_pages()
     + expand_pages.station_pages()
+    + expand_pages.dong_pages()
 )
