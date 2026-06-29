@@ -39,6 +39,13 @@ def related_section(slug: str) -> str:
     name = data.city_display(slug)
     reg = c["region"]
     reg_name = data.REGIONS[reg]["name"]
+    life = "·".join(c["life"]) if c["life"] else "주요 생활권"
+    intro = f"{name}의 대표 생활권은 {life}"
+    if c["stations"]:
+        intro += f", 가까운 역은 {'·'.join(c['stations'])}"
+    else:
+        intro += ", 지하철 미연결 지역으로 차량 이동이 기본"
+    intro += f"입니다. {reg_name} 권역에 속하며 아래에서 인접 시군과 확인사항을 이어서 볼 수 있습니다."
     items = [_li(data.region_url(reg), f"{reg_name} 권역에서 인접 시군 함께 보기")]
     for n in data.neighbors(slug, 4):
         items.append(_li(data.city_url(n), f"{data.city_display(n)} 지역 안내 보기"))
@@ -51,6 +58,7 @@ def related_section(slug: str) -> str:
     items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
     return (
         '<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
+        f'<p>{intro}</p>\n'
         f'<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n'
     )
 
@@ -70,13 +78,20 @@ def assemble_city(slug: str, unique_html: str) -> str:
 def assemble_region(slug: str, unique_html: str) -> str:
     """권역 페이지: 고유 본문 + 포함 시군 링크 + 공통 블록."""
     r = data.REGIONS[slug]
+    members_list = [s for s in r["cities"] if s in data.CITIES]
     city_links = "\n".join(
-        _li(data.city_url(s), f"{data.city_display(s)} 지역 안내 보기")
-        for s in r["cities"] if s in data.CITIES
+        _li(data.city_url(s),
+            f"{data.city_display(s)} — {'·'.join(data.CITIES[s]['life'][:2])} 생활권 안내")
+        for s in members_list
+    )
+    summary = ", ".join(
+        f"{data.city_display(s)}({'·'.join(data.CITIES[s]['life'][:1])})"
+        for s in members_list
     )
     members = (
         '<section class="related">\n<h2>이 권역의 시군 안내</h2>\n'
-        f'<ul class="ref-list">\n{city_links}\n</ul>\n'
-        '<p>시군을 고르면 일반구·대표 행정동·생활권·가까운 역세권과 이용 장소별 예약 전 확인사항을 이어서 볼 수 있습니다.</p>\n</section>\n'
+        f'<p>{r["name"]} 권역에서 안내하는 시군과 대표 생활권은 다음과 같습니다 — {summary}. '
+        '시군을 고르면 일반구·대표 행정동·생활권·가까운 역세권과 이용 장소별 예약 전 확인사항을 이어서 볼 수 있습니다.</p>\n'
+        f'<ul class="ref-list">\n{city_links}\n</ul>\n</section>\n'
     )
     return unique_html + members + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA

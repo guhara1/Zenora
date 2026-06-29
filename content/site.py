@@ -74,7 +74,7 @@ NAV = [
         ("개인정보 처리 기준", "/gyeonggi/check/privacy/"),
         ("불법·선정적 서비스 불가", "/gyeonggi/check/service-policy/"),
     ]),
-    ("운영 기준", "/gyeonggi/policy/", [
+    ("운영 기준", "/gyeonggi/policy/service-standard/", [
         ("콘텐츠·운영 기준", "/gyeonggi/policy/service-standard/"),
         ("작성자·검수자 안내", "/gyeonggi/policy/authors/"),
         ("개인정보 처리방침", "/gyeonggi/policy/privacy/"),
