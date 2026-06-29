@@ -2,6 +2,7 @@
 # 고유 본문(워크플로 생성)은 measure 대상이고, 아래 블록은 class 로 제외된다.
 from .site import PHONE, PHONE_DISPLAY, REFERENCES, WHO_HOW_WHY, REGION_NAME
 from . import data
+from . import data_ext as E
 
 CTA = f"""
 <section class="cta">
@@ -49,11 +50,16 @@ def related_section(slug: str) -> str:
     items = [_li(data.region_url(reg), f"{reg_name} 권역에서 인접 시군 함께 보기")]
     for n in data.neighbors(slug, 4):
         items.append(_li(data.city_url(n), f"{data.city_display(n)} 지역 안내 보기"))
-    if c["districts"]:
-        gu = "·".join(c["districts"])
-        items.append(_li("/gyeonggi/districts/", f"{name} 일반구({gu}) 행정구 안내"))
-    items.append(_li("/gyeonggi/life/", f"{name} 주변 생활권 안내 보기"))
-    items.append(_li("/gyeonggi/station/", f"{name} 인근 역세권 안내 보기"))
+    # 일반구 상세 페이지로 직접 연결(있는 경우)
+    for g in E.city_districts(slug):
+        items.append(_li(E.district_url(g),
+                         f"{name} {E.DISTRICTS[g]['name']} 행정동·생활권 안내"))
+    # 생활권 상세 페이지로 직접 연결
+    for lf in E.city_life(slug):
+        items.append(_li(E.life_url(lf), f"{E.LIFE[lf]['name']} 생활권 안내 보기"))
+    # 역세권 상세 페이지로 직접 연결
+    for st in E.city_stations(slug):
+        items.append(_li(E.station_url(st), f"{E.STATIONS[st]['name']} 역세권 안내 보기"))
     items.append(_li("/gyeonggi/use/", "이용 장소별(자택·호텔·오피스텔) 확인사항"))
     items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
     return (
@@ -95,3 +101,77 @@ def assemble_region(slug: str, unique_html: str) -> str:
         f'<ul class="ref-list">\n{city_links}\n</ul>\n</section>\n'
     )
     return unique_html + members + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA
+
+
+# ── 1차-B 상세 페이지 조립(일반구·생활권·역세권) ───────────
+def _district_related(slug: str) -> str:
+    d = E.DISTRICTS[slug]
+    city = d["city"]
+    cname = data.city_display(city)
+    items = [_li(data.city_url(city), f"{cname} 시 전체 지역 안내 보기")]
+    for g in E.city_districts(city):
+        if g == slug:
+            continue
+        items.append(_li(E.district_url(g), f"{cname} {E.DISTRICTS[g]['name']} 안내 보기"))
+    for lf in E.city_life(city):
+        items.append(_li(E.life_url(lf), f"{E.LIFE[lf]['name']} 생활권 안내 보기"))
+    for st in E.city_stations(city):
+        items.append(_li(E.station_url(st), f"{E.STATIONS[st]['name']} 역세권 안내 보기"))
+    items.append(_li("/gyeonggi/use/", "이용 장소별 확인사항 보기"))
+    items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
+    dong = "·".join(d["dongs"][:6])
+    intro = f"{cname} {d['name']}의 대표 행정동은 {dong} 등입니다. 같은 시의 다른 일반구·생활권·역세권과 함께 확인하세요."
+    return (
+        '<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
+        f'<p>{intro}</p>\n<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n'
+    )
+
+
+def assemble_district(slug: str, unique_html: str) -> str:
+    return unique_html + _district_related(slug) + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA
+
+
+def _life_related(slug: str) -> str:
+    lf = E.LIFE[slug]
+    city = lf["city"]
+    cname = data.city_display(city)
+    items = [_li(data.city_url(city), f"{cname} 시 전체 지역 안내 보기")]
+    for g in E.city_districts(city):
+        items.append(_li(E.district_url(g), f"{cname} {E.DISTRICTS[g]['name']} 안내 보기"))
+    for st in E.city_stations(city):
+        items.append(_li(E.station_url(st), f"{E.STATIONS[st]['name']} 역세권 안내 보기"))
+    items.append(_li("/gyeonggi/life/", "다른 생활권 안내 보기"))
+    items.append(_li("/gyeonggi/use/", "이용 장소별 확인사항 보기"))
+    items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
+    return (
+        '<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
+        f'<p>{lf["name"]} 생활권은 {cname} 중심의 {lf["kind"]}형 생활권입니다. 인근 시군·역세권·이용 장소 안내와 함께 확인하세요.</p>\n'
+        f'<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n'
+    )
+
+
+def assemble_life(slug: str, unique_html: str) -> str:
+    return unique_html + _life_related(slug) + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA
+
+
+def _station_related(slug: str) -> str:
+    st = E.STATIONS[slug]
+    city = st["city"]
+    cname = data.city_display(city)
+    items = [_li(data.city_url(city), f"{cname} 시 전체 지역 안내 보기")]
+    for lf in E.city_life(city):
+        items.append(_li(E.life_url(lf), f"{E.LIFE[lf]['name']} 생활권 안내 보기"))
+    for g in E.city_districts(city):
+        items.append(_li(E.district_url(g), f"{cname} {E.DISTRICTS[g]['name']} 안내 보기"))
+    items.append(_li("/gyeonggi/station/", "다른 역세권 안내 보기"))
+    items.append(_li("/gyeonggi/use/", "이용 장소별 확인사항 보기"))
+    items.append(_li("/gyeonggi/check/", "예약 전 확인사항 모아보기"))
+    return (
+        '<section class="related">\n<h2>관련 지역·확인사항 함께 보기</h2>\n'
+        f'<p>{st["name"]}은(는) {cname} 역세권입니다. 출구별로 페이지를 나누지 않으며, 방문 위치는 실제 도착지 주소 기준으로 확인합니다.</p>\n'
+        f'<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n'
+    )
+
+
+def assemble_station(slug: str, unique_html: str) -> str:
+    return unique_html + _station_related(slug) + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA

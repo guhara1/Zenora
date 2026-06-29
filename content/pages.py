@@ -5,6 +5,7 @@ from .site import (PHONE, PHONE_DISPLAY, REFERENCES, WHO_HOW_WHY,
                    REGION_NAME, TELEGRAM_WEB, TELEGRAM_PARTNER, TRADE_NAME)
 from .shared import CTA, CHECKLIST
 from . import data
+from . import data_ext as E
 
 
 def _grid(items):
@@ -145,14 +146,15 @@ def _simple(path, title, desc, h1, body_inner, crumbs, with_checklist=True):
 def _districts_hub():
     rows = []
     for s in data.CITY_ORDER:
-        c = data.CITIES[s]
-        if not c["districts"]:
+        gus = E.city_districts(s)
+        if not gus:
             continue
-        gu = ", ".join(c["districts"])
+        cname = data.city_display(s)
+        gu_cards = _grid([(E.DISTRICTS[g]["name"], E.district_url(g)) for g in gus])
         rows.append(
-            f'<section><h2>{data.city_display(s)} {len(c["districts"])}개 구</h2>'
-            f'<p>{gu}. {c["focus"]} 자세한 행정동·생활권 안내는 '
-            f'<a href="{data.city_url(s)}">{data.city_display(s)} 지역 안내</a>에서 확인하세요.</p></section>'
+            f'<section><h2>{cname} {len(gus)}개 구</h2>'
+            f'<p>{data.CITIES[s]["focus"]} 각 구를 선택하면 대표 행정동·생활권·가까운 역세권 안내로 이어집니다. '
+            f'시 전체는 <a href="{data.city_url(s)}">{cname} 지역 안내</a>에서 확인하세요.</p>{gu_cards}</section>'
         )
     inner = (
         '<p class="lead">경기도에서 일반구(행정구)가 있는 도시는 수원·성남·용인·고양·부천·안산·안양 7곳, 모두 20개 구입니다. 일반구가 있는 도시는 같은 시 안에서도 이동 기준이 달라 시·일반구·행정동을 함께 확인하는 것이 좋습니다.</p>\n'
@@ -168,21 +170,14 @@ def _districts_hub():
 
 
 def _life_hub():
-    groups = [
-        ("신도시 생활권", ["광교·영통", "분당·판교", "동탄신도시", "일산·킨텍스",
-                       "운정신도시", "하남·미사", "김포·구래", "남양주·다산"]),
-        ("역세권·상권 생활권", ["수원역·인계동", "야탑·서현", "부천역·상동",
-                          "안양·범계·평촌", "안산중앙·초지", "의정부역·민락",
-                          "광명·철산", "군포·산본"]),
-        ("외곽 이동 생활권", ["양평·용문", "가평·청평", "포천·송우",
-                        "연천·전곡", "안성·공도", "여주·오학"]),
-    ]
+    kinds = [("신도시", "신도시 생활권"), ("역세권", "역세권·상권 생활권"), ("외곽", "외곽 이동 생활권")]
     secs = []
-    for title, items in groups:
-        lis = "".join(f"<li>{x}</li>" for x in items)
-        secs.append(f'<section><h2>{title}</h2><p>아래 생활권은 단계적으로 상세 페이지를 공개합니다. 현재는 해당 시군 안내에서 생활권 정보를 확인하실 수 있습니다.</p><ul class="plain-list">{lis}</ul></section>')
+    for kind, title in kinds:
+        slugs = [s for s in E.LIFE_ORDER if E.LIFE[s]["kind"] == kind]
+        cards = _grid([(E.LIFE[s]["name"], E.life_url(s)) for s in slugs])
+        secs.append(f'<section><h2>{title}</h2><p>{title}은(는) 방문 동선과 확인사항이 비슷한 지역을 묶은 단위입니다. 생활권을 선택하면 포함 지역·가까운 역·이용 장소별 확인사항을 볼 수 있습니다.</p>{cards}</section>')
     inner = (
-        '<p class="lead">경기도는 신도시·역세권·외곽 이동권에 따라 방문 조건이 다릅니다. 생활권 단위로 묶어 안내하며, 상세 페이지는 검색 수요와 품질이 확보된 순서로 단계적으로 공개합니다.</p>\n'
+        '<p class="lead">경기도는 신도시·역세권·외곽 이동권에 따라 방문 조건이 다릅니다. 생활권 단위로 묶어 안내하며, 각 생활권은 중심 시군·가까운 역세권과 연결됩니다.</p>\n'
         + "\n".join(secs)
     )
     return _simple(
@@ -195,18 +190,10 @@ def _life_hub():
 
 
 def _station_hub():
-    stations = []
-    for s in data.CITY_ORDER:
-        for st in data.CITIES[s]["stations"]:
-            stations.append(st)
-    uniq = []
-    for st in stations:
-        if st not in uniq:
-            uniq.append(st)
-    lis = "".join(f"<li>{x}</li>" for x in uniq)
+    cards = _grid([(E.STATIONS[s]["name"], E.station_url(s)) for s in E.STATION_ORDER])
     inner = (
         '<p class="lead">경기도를 지나는 1·4·수인분당·신분당·경의중앙·경춘선 등 주요 역세권을 기준으로 안내합니다. 출구별 페이지나 환승역 노선별 페이지는 만들지 않으며, 한 역은 하나의 안내로 운영합니다.</p>\n'
-        f'<section><h2>경기 주요 역세권</h2><p>아래 역세권은 단계적으로 상세 페이지를 공개합니다. 현재는 각 시군 안내에서 가까운 역 정보를 확인하실 수 있습니다.</p><ul class="plain-list">{lis}</ul></section>'
+        f'<section><h2>경기 주요 역세권</h2><p>역을 선택하면 상위 시군·인근 생활권·이용 장소별 확인사항으로 이어집니다.</p>{cards}</section>'
         '<section><h2>역세권 이용 기준</h2><p>역과의 거리는 방문 가능 여부와 직접적인 관련이 없습니다. 경기도 전지역이 방문 범위이며, 역 안내는 위치 설명을 돕는 기준일 뿐입니다. 정확한 가능 여부는 예약 시 실제 주소와 시간으로 확인합니다.</p></section>'
     )
     return _simple(
