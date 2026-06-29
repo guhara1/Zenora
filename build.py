@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""노원 블랙 마사지 — 정적 사이트 빌드 스크립트.
+"""간다GO 경기 출장마사지 — 정적 사이트 빌드 스크립트.
 
 content/ 패키지의 페이지 정의를 읽어 정적 HTML을 생성한다.
 
 규칙(자동 적용):
   - 본문 텍스트 2,000자 미만 페이지는 robots noindex 처리
   - sitemap.xml 에는 index 허용 페이지만 포함
-  - 지역+역+테마 조합 경로는 생성 자체가 불가능한 구조
+  - 루트(/)는 경기 메인(/gyeonggi/)으로 리다이렉트
 """
 import html
 import os
@@ -18,7 +18,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from content import PAGES
 from content.site import (BASE_URL, BRAND, NAV, PHONE, PHONE_DISPLAY,
-                          TRADE_NAME, TELEGRAM_WEB, TELEGRAM_PARTNER)
+                          TRADE_NAME, TELEGRAM_WEB, TELEGRAM_PARTNER,
+                          BRAND_MARK, REGION_NAME, AREA_SERVED)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MIN_INDEX_CHARS = 2000
@@ -26,8 +27,12 @@ MIN_INDEX_CHARS = 2000
 
 def text_length(body_html: str) -> int:
     """태그를 제거한 본문 글자수(공백 포함, 연속 공백은 1자).
-    공통 요금 블록은 페이지 고유 본문이 아니므로 측정에서 제외한다."""
-    text = re.sub(r'<section class="pricing">.*?</section>', " ", body_html, flags=re.S)
+    사이트 공통 블록(요금·참고링크·Who/How/Why·CTA·공통 안내)은 페이지 고유
+    본문이 아니므로 측정에서 제외해, 2,000자 기준이 '고유 콘텐츠'에 적용되도록 한다."""
+    text = re.sub(
+        r'<section class="(?:pricing|references|whw|cta|shared)[^"]*">.*?</section>',
+        " ", body_html, flags=re.S,
+    )
     text = re.sub(r"<[^>]+>", " ", text)
     text = html.unescape(text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -153,7 +158,7 @@ def render_base_schema(page: dict, canonical: str) -> str:
       "image": "{og}",
       "logo": "{og}",
       "telephone": "{PHONE}",
-      "areaServed": {{"@type": "AdministrativeArea", "name": "서울특별시 노원구"}},
+      "areaServed": {{"@type": "AdministrativeArea", "name": "{AREA_SERVED}"}},
       "contactPoint": {{
         "@type": "ContactPoint",
         "telephone": "{PHONE}",
@@ -247,7 +252,7 @@ def render_page(page: dict) -> str:
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
-<meta name="theme-color" content="#0a1120">
+<meta name="theme-color" content="#05080f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700;900&display=swap" rel="stylesheet">
@@ -258,8 +263,8 @@ def render_page(page: dict) -> str:
   <div class="header-accent" aria-hidden="true"></div>
   <div class="header-top">
     <div class="header-inner">
-      <a class="brand" href="/"><span class="brand-mark">N</span> <span class="brand-text">{BRAND}</span></a>
-      <p class="header-tagline"><span class="tag-gem">◆</span> 노원구 전지역 방문 관리 <span class="tag-gem">◆</span> 24시간 상담</p>
+      <a class="brand" href="/gyeonggi/"><span class="brand-mark">{BRAND_MARK}</span> <span class="brand-text">{BRAND}</span></a>
+      <p class="header-tagline"><span class="tag-gem">◆</span> {REGION_NAME} 전지역 방문 관리 <span class="tag-gem">◆</span> 24시간 상담</p>
       <a class="header-call" href="tel:{PHONE}"><span class="call-label">예약전화</span> {PHONE_DISPLAY}</a>
       <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false"><span></span><span></span><span></span></button>
     </div>
@@ -282,12 +287,12 @@ def render_page(page: dict) -> str:
   <div class="container footer-grid">
     <div class="footer-col footer-about">
       <p class="footer-brand">{BRAND}</p>
-      <p class="footer-desc">노원구 전지역 방문 출장마사지·홈타이 안내 사이트입니다. 모든 서비스는 안내된 관리 범위와 위생·안전 기준 안에서만 제공됩니다.</p>
+      <p class="footer-desc">{REGION_NAME} 전지역 방문형 관리 안내 사이트입니다. 시군·일반구·행정동·생활권·역세권별 예약 전 확인사항을 안내하며, 안내된 관리 범위 안에서만 운영합니다.</p>
       <address class="footer-contact">
         <span class="footer-contact-row"><span class="footer-label">상　　호</span> {TRADE_NAME}</span>
         <span class="footer-contact-row"><span class="footer-label">예약전화</span> <a href="tel:{PHONE}">{PHONE_DISPLAY}</a></span>
         <span class="footer-contact-row"><span class="footer-label">상담시간</span> 연중무휴 24시간</span>
-        <span class="footer-contact-row"><span class="footer-label">서비스 지역</span> 서울특별시 노원구 전지역</span>
+        <span class="footer-contact-row"><span class="footer-label">서비스 지역</span> {REGION_NAME} 전지역</span>
       </address>
       <div class="footer-cta">
         <a class="footer-cta-btn" href="{TELEGRAM_WEB}" target="_blank" rel="noopener nofollow">
@@ -298,35 +303,35 @@ def render_page(page: dict) -> str:
         </a>
       </div>
     </div>
-    <nav class="footer-col" aria-label="서비스 안내">
-      <p class="footer-title">서비스</p>
+    <nav class="footer-col" aria-label="지역 안내">
+      <p class="footer-title">지역 안내</p>
       <ul>
-        <li><a href="/massage/">노원 출장마사지</a></li>
-        <li><a href="/nowon-gu/">지역별 안내</a></li>
-        <li><a href="/nowon-gu/stations/">지하철역별 안내</a></li>
-        <li><a href="/themes/">테마별 안내</a></li>
-        <li><a href="/courses/">코스안내</a></li>
+        <li><a href="/gyeonggi/">경기 홈</a></li>
+        <li><a href="/gyeonggi/area/">권역 안내</a></li>
+        <li><a href="/gyeonggi/cities/">시군 안내</a></li>
+        <li><a href="/gyeonggi/districts/">행정구 안내</a></li>
+        <li><a href="/gyeonggi/life/">생활권 안내</a></li>
+        <li><a href="/gyeonggi/station/">지하철역 안내</a></li>
       </ul>
     </nav>
     <nav class="footer-col" aria-label="이용 안내">
       <p class="footer-title">이용 안내</p>
       <ul>
-        <li><a href="/reservation/">예약안내</a></li>
-        <li><a href="/guide/">이용가이드</a></li>
-        <li><a href="/reviews/">이용 후기</a></li>
-        <li><a href="/support/">고객센터</a></li>
-        <li><a href="/support/#faq">자주 묻는 질문</a></li>
+        <li><a href="/gyeonggi/use/">이용 장소</a></li>
+        <li><a href="/gyeonggi/check/">예약 전 확인</a></li>
+        <li><a href="/gyeonggi/check/time/">예약 가능 시간</a></li>
+        <li><a href="/gyeonggi/check/travel-fee/">추가 이동비 기준</a></li>
+        <li><a href="/gyeonggi/contact/">문의하기</a></li>
       </ul>
     </nav>
-    <nav class="footer-col" aria-label="정책 및 기준">
-      <p class="footer-title">정책</p>
+    <nav class="footer-col" aria-label="운영 기준">
+      <p class="footer-title">운영 기준</p>
       <ul>
-        <li><a href="/about/">운영자 소개</a></li>
-        <li><a href="/support/privacy/">개인정보처리방침</a></li>
-        <li><a href="/support/terms/">이용약관</a></li>
-        <li><a href="/guide/#hygiene">위생·안전 기준</a></li>
-        <li><a href="/guide/#prohibited">금지행위 안내</a></li>
-        <li><a href="/support/#biz">제휴·기업 문의</a></li>
+        <li><a href="/gyeonggi/policy/service-standard/">콘텐츠·운영 기준</a></li>
+        <li><a href="/gyeonggi/policy/authors/">작성자·검수자 안내</a></li>
+        <li><a href="/gyeonggi/policy/privacy/">개인정보 처리방침</a></li>
+        <li><a href="/gyeonggi/check/privacy/">개인정보 처리 기준</a></li>
+        <li><a href="/gyeonggi/check/service-policy/">불법·선정적 서비스 불가</a></li>
       </ul>
     </nav>
   </div>
@@ -381,6 +386,20 @@ def build() -> None:
         f.write(
             "User-agent: *\nAllow: /\n\n"
             f"Sitemap: {BASE_URL.rstrip('/')}/sitemap.xml\n"
+        )
+
+    # 루트(/) → 경기 메인(/gyeonggi/) 리다이렉트
+    home = BASE_URL.rstrip("/") + "/gyeonggi/"
+    with open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8") as f:
+        f.write(
+            '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            '<title>경기도 출장마사지 안내</title>'
+            f'<link rel="canonical" href="{home}">'
+            '<meta name="robots" content="noindex,follow">'
+            '<meta http-equiv="refresh" content="0; url=/gyeonggi/">'
+            '<script>location.replace("/gyeonggi/")</script></head>'
+            '<body><p><a href="/gyeonggi/">경기도 출장마사지 안내로 이동</a></p></body></html>\n'
         )
 
     # .nojekyll (GitHub Pages)

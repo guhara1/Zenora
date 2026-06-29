@@ -1,4 +1,8 @@
-# 전체 페이지 목록 집계
-from . import main, areas, stations, themes, info, magazine, about
+# 경기도 출장마사지 — 전체 페이지 목록 집계
+from . import pages, generated_pages
 
-PAGES = [main.PAGE] + areas.PAGES + stations.PAGES + themes.PAGES + info.PAGES + magazine.PAGES + [about.PAGE]
+PAGES = (
+    pages.static_pages()
+    + generated_pages.region_pages()
+    + generated_pages.city_pages()
+)
