@@ -3,9 +3,44 @@
 # 상세(일반구·행정동·생활권·역세권 개별) 페이지는 단계적 확장 대상이다.
 from .site import (PHONE, PHONE_DISPLAY, REFERENCES, WHO_HOW_WHY,
                    REGION_NAME, TELEGRAM_WEB, TELEGRAM_PARTNER, TRADE_NAME)
-from .shared import CTA, CHECKLIST
+import json
+import os
+
+from .shared import CTA, CHECKLIST, _li
+from .generated_pages import faqpage_jsonld
 from . import data
 from . import data_ext as E
+
+_GEN3_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generated3.json")
+
+
+def _load_gen3():
+    if not os.path.exists(_GEN3_PATH):
+        return {"use": {}, "check": {}}
+    raw = json.load(open(_GEN3_PATH, encoding="utf-8"))
+    return {"use": {x["slug"]: x for x in raw.get("use", [])},
+            "check": {x["slug"]: x for x in raw.get("check", [])}}
+
+
+_GEN3 = _load_gen3()
+
+
+def _topic_related(kind, slug):
+    """이용 장소/예약 전 확인 상세 페이지 하단 관련 링크."""
+    hub = "/gyeonggi/use/" if kind == "use" else "/gyeonggi/check/"
+    lst = _USE if kind == "use" else _CHECK
+    head = "이용 장소 전체 보기" if kind == "use" else "예약 전 확인 전체 보기"
+    items = [_li(hub, head)]
+    for s, l, _ in lst:
+        if s != slug:
+            items.append(_li(f"{hub}{s}/", f"{l} 보기"))
+    cross = ("/gyeonggi/check/", "예약 전 확인사항 모아보기") if kind == "use" \
+        else ("/gyeonggi/use/", "이용 장소별 안내 보기")
+    items.append(_li(*cross))
+    items.append(_li("/gyeonggi/cities/", "경기 시군별 안내 보기"))
+    items.append(_li("/gyeonggi/area/", "경기 권역별 안내 보기"))
+    return ('<section class="related">\n<h2>관련 안내 함께 보기</h2>\n'
+            f'<ul class="ref-list">\n{chr(10).join(items)}\n</ul>\n</section>\n')
 
 
 def _grid(items):
@@ -233,17 +268,25 @@ def _use_pages():
         hub_inner, [("이용 장소", None)], with_checklist=False,
     ))
     for slug, lbl, line in _USE:
-        inner = (
-            f'<section><h2>{lbl} 안내</h2><p>{line} 경기도 전지역에서 {lbl.replace(" 이용","")} 방문은 실제 주소와 예약 시간을 기준으로 가능 여부를 확인합니다. 안내된 관리 범위 안에서만 운영하며, 불법·선정적 서비스는 제공하거나 안내하지 않습니다.</p></section>'
-            f'<section><h2>{lbl} 예약 전 확인 포인트</h2><p>방문 주소(도로명)와 동·호수, 공동현관 또는 건물 출입 방식, 주차 가능 여부, 예약 가능 시간대를 미리 확인해 주세요. 외곽 지역은 추가 이동비가 필요할 수 있어 사전 확인이 필요합니다.</p></section>'
-        )
-        pages.append(_simple(
-            f"gyeonggi/use/{slug}/",
-            f"경기도 {lbl} 안내｜방문형 관리 이용 장소",
-            f"경기도 {lbl} 안내. {line}",
-            f"경기도 {lbl} 안내",
-            inner, [("이용 장소", "/gyeonggi/use/"), (lbl, None)],
-        ))
+        gen = _GEN3["use"].get(slug)
+        if gen:
+            body = (gen["body_html"] + _topic_related("use", slug)
+                    + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA)
+            extra = faqpage_jsonld(gen["faqs"])
+        else:
+            body = (
+                f'<section><h2>{lbl} 안내</h2><p>{line} 경기도 전지역에서 {lbl.replace(" 이용","")} 방문은 실제 주소와 예약 시간을 기준으로 가능 여부를 확인합니다. 안내된 관리 범위 안에서만 운영하며, 불법·선정적 서비스는 제공하거나 안내하지 않습니다.</p></section>'
+                + REFERENCES + WHO_HOW_WHY + CTA
+            )
+            extra = ""
+        pages.append({
+            "path": f"gyeonggi/use/{slug}/",
+            "title": f"경기도 {lbl} 안내｜방문형 관리 이용 장소",
+            "desc": f"경기도 {lbl} 안내. {line}"[:80],
+            "h1": f"경기도 {lbl} 안내",
+            "body": body, "extra_head": extra,
+            "breadcrumb": [("이용 장소", "/gyeonggi/use/"), (lbl, None)],
+        })
     return pages
 
 
@@ -273,17 +316,25 @@ def _check_pages():
         hub_inner, [("예약 전 확인", None)], with_checklist=False,
     ))
     for slug, lbl, line in _CHECK:
-        inner = (
-            f'<section><h2>{lbl}</h2><p>{line} 경기도는 시군·일반구·행정동·생활권에 따라 방문 환경이 다르므로, {lbl} 항목을 예약 단계에서 함께 확인하면 방문이 한층 매끄럽습니다.</p></section>'
-            f'<section><h2>관련 안내</h2><p>장소별 기준은 <a href="/gyeonggi/use/">이용 장소 안내</a>에서, 전체 체크리스트는 아래에서 확인하실 수 있습니다.</p></section>'
-        )
-        pages.append(_simple(
-            f"gyeonggi/check/{slug}/",
-            f"경기도 {lbl}｜예약 전 확인",
-            f"경기도 출장마사지 {lbl}. {line}",
-            f"경기도 출장마사지 {lbl}",
-            inner, [("예약 전 확인", "/gyeonggi/check/"), (lbl, None)],
-        ))
+        gen = _GEN3["check"].get(slug)
+        if gen:
+            body = (gen["body_html"] + _topic_related("check", slug)
+                    + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA)
+            extra = faqpage_jsonld(gen["faqs"])
+        else:
+            body = (
+                f'<section><h2>{lbl}</h2><p>{line} 경기도는 시군·일반구·행정동·생활권에 따라 방문 환경이 다르므로, {lbl} 항목을 예약 단계에서 함께 확인하면 방문이 한층 매끄럽습니다.</p></section>'
+                + REFERENCES + WHO_HOW_WHY + CTA
+            )
+            extra = ""
+        pages.append({
+            "path": f"gyeonggi/check/{slug}/",
+            "title": f"경기도 {lbl}｜예약 전 확인",
+            "desc": f"경기도 출장마사지 {lbl}. {line}"[:80],
+            "h1": f"경기도 출장마사지 {lbl}",
+            "body": body, "extra_head": extra,
+            "breadcrumb": [("예약 전 확인", "/gyeonggi/check/"), (lbl, None)],
+        })
     return pages
 
 
