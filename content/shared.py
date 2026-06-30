@@ -34,6 +34,48 @@ def _li(href, label):
     return f'<li><a href="{href}">{label}</a></li>'
 
 
+def _btn_grid(pairs):
+    """버튼식 카드 그리드(.card-grid). pairs = [(label, href), ...]"""
+    lis = "\n".join(f'<li><a href="{href}">{label}</a></li>' for label, href in pairs)
+    return f'<ul class="card-grid">\n{lis}\n</ul>'
+
+
+def district_nav(city_slug: str) -> str:
+    """시(행정시) 페이지: 소속 행정구를 모두 버튼식으로 나열·내부링크."""
+    gus = E.city_districts(city_slug)
+    if not gus:
+        return ""
+    name = data.city_display(city_slug)
+    grid = _btn_grid([(E.DISTRICTS[g]["name"], E.district_url(g)) for g in gus])
+    return (
+        '<section class="area-nav">\n'
+        f"<h2>{name} 행정구 바로가기</h2>\n"
+        f"<p>{name}의 행정구를 선택하면 해당 구의 대표 행정동·생활권·가까운 역세권 "
+        "안내로 이어집니다.</p>\n"
+        f"{grid}\n</section>\n"
+    )
+
+
+def dong_nav(gu_slug: str) -> str:
+    """행정구 페이지: 대표 행정동을 모두 버튼식으로 나열·내부링크.
+
+    번호로 나뉜 동(1·2·3동 등)은 대표 동 하나로 묶어 안내한다.
+    """
+    keys = E.gu_dongs(gu_slug)
+    if not keys:
+        return ""
+    d = E.DISTRICTS[gu_slug]
+    cname = data.city_display(d["city"])
+    grid = _btn_grid([(E.DONG_BY_KEY[k]["name"], E.dong_url(k)) for k in keys])
+    return (
+        '<section class="area-nav">\n'
+        f"<h2>{cname} {d['name']} 행정동 바로가기</h2>\n"
+        f"<p>{d['name']}의 대표 행정동입니다. 번호로 나뉜 동(1·2·3동 등)은 대표 동 "
+        "하나로 묶어 안내하며, 동을 선택하면 해당 지역 확인사항으로 이어집니다.</p>\n"
+        f"{grid}\n</section>\n"
+    )
+
+
 def related_section(slug: str) -> str:
     """시군 페이지 하단 관련 지역 내부링크(상위 권역·인접 시군·구조 허브)."""
     c = data.CITIES[slug]
@@ -70,9 +112,10 @@ def related_section(slug: str) -> str:
 
 
 def assemble_city(slug: str, unique_html: str) -> str:
-    """고유 본문 + 관련 링크 + 공통 블록(체크리스트·참고·Who/How/Why·CTA)."""
+    """고유 본문 + 행정구 버튼 + 관련 링크 + 공통 블록."""
     return (
         unique_html
+        + district_nav(slug)
         + related_section(slug)
         + CHECKLIST
         + REFERENCES
@@ -140,7 +183,8 @@ def _district_related(slug: str) -> str:
 
 
 def assemble_district(slug: str, unique_html: str) -> str:
-    return unique_html + _district_related(slug) + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA
+    return (unique_html + dong_nav(slug) + _district_related(slug)
+            + CHECKLIST + REFERENCES + WHO_HOW_WHY + CTA)
 
 
 def _life_related(slug: str) -> str:

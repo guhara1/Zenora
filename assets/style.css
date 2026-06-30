@@ -828,3 +828,21 @@ th { background: var(--panel-2); color: var(--gold-soft); font-family: var(--ser
 @media (max-width: 680px) {
   .review-list { grid-template-columns: 1fr; }
 }
+
+/* ── 행정구/행정동 버튼 내비게이션 ───────────────────────── */
+.area-nav {
+  margin: 26px 0;
+  padding: 20px 22px;
+  background: linear-gradient(180deg, rgba(212,175,110,0.06), rgba(12,20,34,0));
+  border: 1px solid var(--line-gold);
+  border-radius: var(--radius);
+}
+.area-nav > h2 {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 1.18rem;
+  color: var(--gold-soft);
+}
+.area-nav > p { margin: 0 0 4px; color: var(--text-dim); font-size: 0.92rem; }
+.area-nav .card-grid { margin-bottom: 0; }
+.area-nav .card-grid a { font-weight: 500; }
