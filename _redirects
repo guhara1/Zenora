@@ -1,0 +1,3 @@
+# 구 경로 호환 — gyeonggi/ 프리픽스 제거(영구 이동)
+/gyeonggi/*    /:splat    301!
+/gyeonggi      /          301!

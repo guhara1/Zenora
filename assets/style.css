@@ -745,3 +745,86 @@ th { background: var(--panel-2); color: var(--gold-soft); font-family: var(--ser
 }
 .ref-list a { color: var(--text); }
 .ref-list a:hover { color: var(--gold-soft); }
+
+/* ── 주제별 안내 바로가기(롱테일 내부링크) ───────────────── */
+.topic-links .topic-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 16px;
+}
+.topic-col {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.topic-col h3 {
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  color: var(--gold-soft);
+  margin: 0 0 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-gold);
+}
+.topic-col .ref-list { margin-top: 8px; }
+.topic-col .ref-list li { padding-left: 20px; font-size: 0.92rem; }
+@media (max-width: 820px) {
+  .topic-links .topic-cols { grid-template-columns: 1fr; }
+}
+
+/* ── 이용 후기·평점 ──────────────────────────────────────── */
+.reviews { }
+.review-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 6px 0 18px;
+  padding: 14px 18px;
+  background: var(--panel-2);
+  border: 1px solid var(--line-gold);
+  border-radius: var(--radius);
+}
+.review-score {
+  font-family: var(--serif);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold-soft);
+}
+.review-stars-lg {
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  color: var(--gold);
+}
+.review-count { color: var(--text-dim); font-size: 0.9rem; }
+.review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.review-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.review-stars { color: var(--gold); letter-spacing: 2px; margin: 0 0 8px; font-size: 0.95rem; }
+.review-body { margin: 0 0 10px; color: var(--text); line-height: 1.7; }
+.review-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+.review-author { font-weight: 500; color: var(--gold-soft); }
+.review-note { margin: 14px 0 0; color: var(--text-dim); font-size: 0.82rem; }
+@media (max-width: 680px) {
+  .review-list { grid-template-columns: 1fr; }
+}

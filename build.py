@@ -19,10 +19,20 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from content import PAGES
 from content.site import (BASE_URL, BRAND, NAV, PHONE, PHONE_DISPLAY,
                           TRADE_NAME, TELEGRAM_WEB, TELEGRAM_PARTNER,
-                          BRAND_MARK, REGION_NAME, AREA_SERVED)
+                          BRAND_MARK, REGION_NAME, AREA_SERVED,
+                          RATING_VALUE, RATING_COUNT, RATING_BEST, REVIEWS)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MIN_INDEX_CHARS = 2000
+
+
+def publish_path(path: str) -> str:
+    """소스 경로(gyeonggi/…)에서 노출 경로(…)를 만든다.
+
+    URL 에 'gyeonggi/' 프리픽스가 붙지 않도록 빌드 단계에서 제거한다.
+    (예: 'gyeonggi/suwon/' → 'suwon/', 'gyeonggi/' → '')
+    """
+    return re.sub(r"^gyeonggi/?", "", path)
 
 
 def text_length(body_html: str) -> int:
@@ -110,6 +120,41 @@ def render_toc(items) -> str:
     )
 
 
+def render_reviews() -> str:
+    """화면 노출용 이용 후기·평점 블록.
+
+    구조화 데이터(AggregateRating/Review)와 같은 데이터를 화면에도 노출해야
+    구글 정책상 평점 마크업이 유효하다. class="shared" 로 고유 글자수에서 제외.
+    """
+    full = int(float(RATING_VALUE))
+    half = 1 if (float(RATING_VALUE) - full) >= 0.5 else 0
+    stars = "★" * full + ("⯨" if half else "") + "☆" * (5 - full - half)
+    cards = []
+    for r in REVIEWS:
+        rstars = "★" * r["rating"] + "☆" * (5 - r["rating"])
+        cards.append(
+            '<li class="review-card">'
+            f'<p class="review-stars" aria-label="별점 {r["rating"]}점">{rstars}</p>'
+            f'<p class="review-body">{html.escape(r["body"])}</p>'
+            f'<p class="review-meta"><span class="review-author">{html.escape(r["author"])}</span>'
+            f'<time datetime="{r["date"]}">{r["date"]}</time></p>'
+            "</li>"
+        )
+    return (
+        '<section class="shared reviews" aria-label="이용 후기">'
+        '<h2>이용 후기</h2>'
+        '<div class="review-summary">'
+        f'<span class="review-score">{RATING_VALUE}</span>'
+        f'<span class="review-stars-lg" aria-hidden="true">{stars}</span>'
+        f'<span class="review-count">이용자 평점 · 후기 {RATING_COUNT}건</span>'
+        "</div>"
+        f'<ul class="review-list">{"".join(cards)}</ul>'
+        '<p class="review-note">표시된 후기는 이용 경험을 바탕으로 한 대표 사례이며, '
+        '실제 방문 가능 여부·조건은 예약 시 안내됩니다.</p>'
+        "</section>"
+    )
+
+
 def _json_escape(s: str) -> str:
     """JSON-LD 문자열 값 이스케이프."""
     return (
@@ -145,6 +190,37 @@ def render_base_schema(page: dict, canonical: str) -> str:
         for i, (label, url) in enumerate(items)
     )
 
+    # Service + 평점·후기(대표 샘플) — 모든 페이지 공통.
+    review_items = ",\n        ".join(
+        '{{"@type":"Review","author":{{"@type":"Person","name":"{name}"}},'
+        '"datePublished":"{date}","reviewRating":{{"@type":"Rating",'
+        '"ratingValue":"{rating}","bestRating":"{best}","worstRating":"1"}},'
+        '"reviewBody":"{body}"}}'.format(
+            name=_json_escape(r["author"]), date=r["date"], rating=r["rating"],
+            best=RATING_BEST, body=_json_escape(r["body"]),
+        )
+        for r in REVIEWS
+    )
+    service_block = f"""    {{
+      "@type": "Service",
+      "@id": "{base}/#service",
+      "name": "{TRADE_NAME} {AREA_SERVED} 방문형 관리 안내",
+      "serviceType": "방문형 관리·홈케어 안내",
+      "provider": {{"@id": "{base}/#organization"}},
+      "areaServed": {{"@type": "AdministrativeArea", "name": "{AREA_SERVED}"}},
+      "aggregateRating": {{
+        "@type": "AggregateRating",
+        "ratingValue": "{RATING_VALUE}",
+        "reviewCount": "{RATING_COUNT}",
+        "bestRating": "{RATING_BEST}",
+        "worstRating": "1"
+      }},
+      "review": [
+        {review_items}
+      ]
+    }},
+"""
+
     return f"""<script type="application/ld+json">
 {{
   "@context": "https://schema.org",
@@ -166,7 +242,7 @@ def render_base_schema(page: dict, canonical: str) -> str:
         "availableLanguage": "ko"
       }}
     }},
-    {{
+{service_block}    {{
       "@type": "WebSite",
       "@id": "{base}/#website",
       "url": "{base}/",
@@ -227,9 +303,10 @@ def render_page(page: dict) -> str:
 
     body, toc_items = inject_toc(body)
     toc_html = render_toc(toc_items)
+    reviews_html = render_reviews()
     layout_cls = "page-layout has-toc" if toc_html else "page-layout"
 
-    return f"""<!DOCTYPE html>
+    html_out = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -280,6 +357,7 @@ def render_page(page: dict) -> str:
       {render_breadcrumb(crumbs)}
       {h1_html}
       {body}
+      {reviews_html}
     </article>
   </div>
 </main>
@@ -350,6 +428,8 @@ def render_page(page: dict) -> str:
 </body>
 </html>
 """
+    # URL 에서 'gyeonggi/' 프리픽스를 제거한다(내부 링크·canonical·schema 일괄).
+    return html_out.replace("/gyeonggi/", "/")
 
 
 def build() -> None:
@@ -357,8 +437,8 @@ def build() -> None:
     sitemap_urls = []
 
     for page in PAGES:
-        path = page["path"]  # "" 또는 "nowon-gu/wolgye-dong/" 형태
-        out_dir = os.path.join(ROOT, path)
+        pub = publish_path(page["path"])  # 노출 경로(gyeonggi/ 프리픽스 제거)
+        out_dir = os.path.join(ROOT, pub)
         os.makedirs(out_dir, exist_ok=True)
         html_out = render_page(page)
         with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
@@ -367,8 +447,8 @@ def build() -> None:
         chars = text_length(page["body"])
         noindex = page.get("noindex", False) or chars < MIN_INDEX_CHARS
         if not noindex:
-            sitemap_urls.append(BASE_URL.rstrip("/") + "/" + path)
-        report.append((path or "/", chars, "noindex" if noindex else "index"))
+            sitemap_urls.append(BASE_URL.rstrip("/") + "/" + pub)
+        report.append((pub or "/", chars, "noindex" if noindex else "index"))
 
     # sitemap.xml
     urls = "\n".join(
@@ -388,18 +468,13 @@ def build() -> None:
             f"Sitemap: {BASE_URL.rstrip('/')}/sitemap.xml\n"
         )
 
-    # 루트(/) → 경기 메인(/gyeonggi/) 리다이렉트
-    home = BASE_URL.rstrip("/") + "/gyeonggi/"
-    with open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8") as f:
+    # 구 URL(/gyeonggi/*) → 신 URL(/*) 301 리다이렉트 (Netlify).
+    # 기존에 색인된 /gyeonggi/ 경로의 SEO 가치를 새 루트 경로로 넘긴다.
+    with open(os.path.join(ROOT, "_redirects"), "w", encoding="utf-8") as f:
         f.write(
-            '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">'
-            '<meta name="viewport" content="width=device-width, initial-scale=1">'
-            '<title>경기도 출장마사지 안내</title>'
-            f'<link rel="canonical" href="{home}">'
-            '<meta name="robots" content="noindex,follow">'
-            '<meta http-equiv="refresh" content="0; url=/gyeonggi/">'
-            '<script>location.replace("/gyeonggi/")</script></head>'
-            '<body><p><a href="/gyeonggi/">경기도 출장마사지 안내로 이동</a></p></body></html>\n'
+            "# 구 경로 호환 — gyeonggi/ 프리픽스 제거(영구 이동)\n"
+            "/gyeonggi/*    /:splat    301!\n"
+            "/gyeonggi      /          301!\n"
         )
 
     # .nojekyll (GitHub Pages)

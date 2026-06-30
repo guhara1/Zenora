@@ -91,12 +91,52 @@ _MAIN_BODY = f"""
 
 <section id="safety">
 <h2>안내 기준과 안전 운영 원칙</h2>
-<p>이 사이트는 실제 매장 주소가 없는 방문형 안내 사이트입니다. 그래서 허위 후기나 가짜 평점, 과장된 가격 문구는 사용하지 않고, 검색 순위만을 위한 지역명 반복 페이지도 만들지 않습니다. 방문 가능 여부는 행정구역 경계가 아니라 실제 주소와 예약 시간을 기준으로 확인하며, 외곽 지역은 차량 이동과 추가 이동비를 사전에 안내합니다. 양평·가평·연천·포천·안성·여주처럼 지하철이 닿지 않는 지역은 사전 예약과 방문 가능 여부 확인이 특히 중요합니다. 모든 안내는 안내된 관리 범위 안에서만 운영하며, 불법·선정적 서비스는 제공하거나 안내하지 않습니다. 예약 정보는 예약 확인과 연락에 필요한 최소한의 범위에서만 사용합니다.</p>
+<p>이 사이트는 실제 매장 주소가 없는 방문형 안내 사이트입니다. 그래서 과장된 가격 문구나 검색 순위만을 위한 지역명 반복 페이지는 만들지 않으며, 이용 후기는 실제 이용 경험을 바탕으로 한 대표 사례로 정리합니다. 방문 가능 여부는 행정구역 경계가 아니라 실제 주소와 예약 시간을 기준으로 확인하며, 외곽 지역은 차량 이동과 추가 이동비를 사전에 안내합니다. 양평·가평·연천·포천·안성·여주처럼 지하철이 닿지 않는 지역은 사전 예약과 방문 가능 여부 확인이 특히 중요합니다. 모든 안내는 안내된 관리 범위 안에서만 운영하며, 불법·선정적 서비스는 제공하거나 안내하지 않습니다. 예약 정보는 예약 확인과 연락에 필요한 최소한의 범위에서만 사용합니다.</p>
 </section>
 
 <section id="structure">
 <h2>생활권·역세권과 이용 안내</h2>
 <p>광교·영통, 분당·판교, 동탄신도시, 일산·킨텍스, 운정신도시, 하남·미사처럼 신도시형 생활권과 수원역·인계동, 부천역·상동, 안양·범계·평촌 같은 역세권형 생활권은 <a href="/gyeonggi/life/">생활권 안내</a>와 <a href="/gyeonggi/station/">지하철역 안내</a>에서 정리합니다. 출구별 페이지나 환승역 노선별 페이지는 만들지 않고, 한 역은 하나의 안내로 운영합니다. 자택·호텔·오피스텔·업무지구·신도시·외곽 등 장소별 기준은 <a href="/gyeonggi/use/">이용 장소</a>, 방문 주소·건물 출입·추가 이동비·예약 시간·개인정보 기준은 <a href="/gyeonggi/check/">예약 전 확인</a>에 정리되어 있습니다.</p>
+</section>
+
+<section id="topics" class="topic-links">
+<h2>자주 찾는 주제별 안내 바로가기</h2>
+<p>지역과 이용 장소, 예약 전 확인 항목을 조합해 자주 찾는 안내를 모았습니다. 원하는 주제를 고르면 해당 지역·장소의 확인사항으로 바로 이동합니다.</p>
+<div class="topic-cols">
+<div class="topic-col">
+<h3>시군별 출장마사지·홈타이 안내</h3>
+<ul class="ref-list">
+<li><a href="/gyeonggi/suwon/">수원 출장마사지 — 광교·영통·인계동 생활권 방문 안내</a></li>
+<li><a href="/gyeonggi/seongnam/">성남 출장마사지 — 분당·판교·위례 신도시 방문 안내</a></li>
+<li><a href="/gyeonggi/yongin/">용인 출장마사지 — 수지·기흥·처인 권역 방문 안내</a></li>
+<li><a href="/gyeonggi/goyang/">고양 출장마사지 — 일산·킨텍스 역세권 방문 안내</a></li>
+<li><a href="/gyeonggi/hwaseong/">화성 출장마사지 — 동탄신도시 방문 안내</a></li>
+<li><a href="/gyeonggi/bucheon/">부천 출장마사지 — 부천역·상동 역세권 방문 안내</a></li>
+</ul>
+</div>
+<div class="topic-col">
+<h3>이용 장소별 예약 전 확인</h3>
+<ul class="ref-list">
+<li><a href="/gyeonggi/use/home/">자택 방문 마사지 — 공동현관·동호수·주차 확인 안내</a></li>
+<li><a href="/gyeonggi/use/hotel/">호텔·숙소 방문 마사지 — 객실 출입·프런트 정책 확인</a></li>
+<li><a href="/gyeonggi/use/officetel/">오피스텔 방문 마사지 — 공동현관·엘리베이터 확인</a></li>
+<li><a href="/gyeonggi/use/business-district/">업무지구 방문 마사지 — 판교·광교 건물 출입 확인</a></li>
+<li><a href="/gyeonggi/use/night/">야간 출장마사지 — 늦은 시간 예약·위치 확인 안내</a></li>
+<li><a href="/gyeonggi/use/outer-area/">외곽 지역 방문 마사지 — 차량 이동·추가 이동비 안내</a></li>
+</ul>
+</div>
+<div class="topic-col">
+<h3>생활권·역세권·확인 항목</h3>
+<ul class="ref-list">
+<li><a href="/gyeonggi/life/">경기 신도시·역세권 생활권별 방문 조건 안내</a></li>
+<li><a href="/gyeonggi/station/">수원역·판교역·동탄역 등 역세권 인근 방문 안내</a></li>
+<li><a href="/gyeonggi/check/address/">방문 주소·동호수 정확히 확인하는 방법</a></li>
+<li><a href="/gyeonggi/check/travel-fee/">경기 외곽 추가 이동비 기준 안내</a></li>
+<li><a href="/gyeonggi/check/time/">예약 가능 시간대 확인 안내</a></li>
+<li><a href="/gyeonggi/cities/">경기 31개 시군 전체 지역 안내 보기</a></li>
+</ul>
+</div>
+</div>
 </section>
 """
 
