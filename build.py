@@ -8,6 +8,7 @@ content/ 패키지의 페이지 정의를 읽어 정적 HTML을 생성한다.
   - sitemap.xml 에는 index 허용 페이지만 포함
   - 루트(/)는 경기 메인(/gyeonggi/)으로 리다이렉트
 """
+import datetime
 import html
 import os
 import re
@@ -20,7 +21,20 @@ from content import PAGES
 from content.site import (BASE_URL, BRAND, NAV, PHONE, PHONE_DISPLAY,
                           TRADE_NAME, TELEGRAM_WEB, TELEGRAM_PARTNER,
                           BRAND_MARK, REGION_NAME, AREA_SERVED,
-                          RATING_VALUE, RATING_COUNT, RATING_BEST, REVIEWS)
+                          RATING_VALUE, RATING_COUNT, RATING_BEST, REVIEWS,
+                          NAVER_VERIFY, GOOGLE_VERIFY, INDEXNOW_KEY)
+
+BUILD_DATE = datetime.date.today().isoformat()
+
+
+def verify_meta() -> str:
+    """검색엔진 사이트 소유확인 메타 태그(값이 있으면 출력)."""
+    tags = []
+    if NAVER_VERIFY:
+        tags.append(f'<meta name="naver-site-verification" content="{NAVER_VERIFY}">')
+    if GOOGLE_VERIFY:
+        tags.append(f'<meta name="google-site-verification" content="{GOOGLE_VERIFY}">')
+    return "\n".join(tags)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MIN_INDEX_CHARS = 2000
@@ -288,7 +302,8 @@ def render_page(page: dict) -> str:
     robots = (
         '<meta name="robots" content="noindex,follow">'
         if noindex
-        else '<meta name="robots" content="index,follow">'
+        else '<meta name="robots" content="index,follow,max-image-preview:large,'
+             'max-snippet:-1,max-video-preview:-1">'
     )
     canonical = BASE_URL.rstrip("/") + "/" + path
     base_schema = render_base_schema(page, canonical)
@@ -311,9 +326,12 @@ def render_page(page: dict) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{verify_meta()}
 <title>{title}</title>
 <meta name="description" content="{desc}">
 {robots}
+<link rel="alternate" type="application/rss+xml" title="{BRAND} 최신 안내" href="{BASE_URL.rstrip('/')}/rss.xml">
+<link rel="sitemap" type="application/xml" href="{BASE_URL.rstrip('/')}/sitemap.xml">
 <link rel="canonical" href="{canonical}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{title}">
@@ -435,6 +453,7 @@ def render_page(page: dict) -> str:
 def build() -> None:
     report = []
     sitemap_urls = []
+    feed_items = []  # (url, title, desc) — RSS 용 색인 페이지
 
     for page in PAGES:
         pub = publish_path(page["path"])  # 노출 경로(gyeonggi/ 프리픽스 제거)
@@ -447,12 +466,19 @@ def build() -> None:
         chars = text_length(page["body"])
         noindex = page.get("noindex", False) or chars < MIN_INDEX_CHARS
         if not noindex:
-            sitemap_urls.append(BASE_URL.rstrip("/") + "/" + pub)
+            url = BASE_URL.rstrip("/") + "/" + pub
+            sitemap_urls.append(url)
+            feed_items.append((url, page["title"], page["desc"]))
         report.append((pub or "/", chars, "noindex" if noindex else "index"))
 
-    # sitemap.xml
+    base = BASE_URL.rstrip("/")
+
+    # sitemap.xml — lastmod 포함(색인 신선도 신호)
     urls = "\n".join(
-        f"  <url><loc>{u}</loc></url>" for u in sitemap_urls
+        f"  <url><loc>{u}</loc><lastmod>{BUILD_DATE}</lastmod>"
+        f"<changefreq>weekly</changefreq>"
+        f"<priority>{'1.0' if u == base + '/' else '0.7'}</priority></url>"
+        for u in sitemap_urls
     )
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write(
@@ -461,12 +487,48 @@ def build() -> None:
             f"{urls}\n</urlset>\n"
         )
 
-    # robots.txt
+    # rss.xml — 구글·네이버가 신규/변경 URL 을 빠르게 발견하도록 RSS 2.0 피드 생성
+    rfc822 = datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S +0900")
+    items = "\n".join(
+        "    <item>\n"
+        f"      <title>{html.escape(t)}</title>\n"
+        f"      <link>{u}</link>\n"
+        f"      <guid isPermaLink=\"true\">{u}</guid>\n"
+        f"      <description>{html.escape(d)}</description>\n"
+        f"      <pubDate>{rfc822}</pubDate>\n"
+        "    </item>"
+        for u, t, d in feed_items
+    )
+    with open(os.path.join(ROOT, "rss.xml"), "w", encoding="utf-8") as f:
+        f.write(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
+            "  <channel>\n"
+            f"    <title>{html.escape(BRAND)} 출장마사지 지역 안내</title>\n"
+            f"    <link>{base}/</link>\n"
+            f'    <atom:link href="{base}/rss.xml" rel="self" type="application/rss+xml"/>\n'
+            f"    <description>{html.escape(REGION_NAME)} 시군·생활권·역세권별 방문형 관리 안내</description>\n"
+            "    <language>ko</language>\n"
+            f"    <lastBuildDate>{rfc822}</lastBuildDate>\n"
+            f"{items}\n"
+            "  </channel>\n</rss>\n"
+        )
+
+    # robots.txt — 모든 봇 허용 + 네이버(Yeti)·구글·Bing 명시 + sitemap·rss 안내
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write(
             "User-agent: *\nAllow: /\n\n"
-            f"Sitemap: {BASE_URL.rstrip('/')}/sitemap.xml\n"
+            "User-agent: Yeti\nAllow: /\n\n"          # 네이버 검색로봇
+            "User-agent: Googlebot\nAllow: /\n\n"
+            "User-agent: Bingbot\nAllow: /\n\n"
+            f"Sitemap: {base}/sitemap.xml\n"
+            f"Sitemap: {base}/rss.xml\n"
         )
+
+    # IndexNow 키 파일 — 네이버·Bing 즉시 색인 제출(POST)에 사용
+    if INDEXNOW_KEY:
+        with open(os.path.join(ROOT, f"{INDEXNOW_KEY}.txt"), "w", encoding="utf-8") as f:
+            f.write(INDEXNOW_KEY + "\n")
 
     # 구 URL(/gyeonggi/*) → 신 URL(/*) 301 리다이렉트 (Netlify).
     # 기존에 색인된 /gyeonggi/ 경로의 SEO 가치를 새 루트 경로로 넘긴다.

@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
 
+User-agent: Yeti
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
 Sitemap: https://zenora1.netlify.app/sitemap.xml
+Sitemap: https://zenora1.netlify.app/rss.xml
