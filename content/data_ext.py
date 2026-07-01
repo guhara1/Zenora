@@ -169,6 +169,21 @@ DONGS = [
     dict(city="bucheon", gu="ojeong-gu", slug="wonjong-dong", name="원종동"),
     dict(city="ansan", gu="sangnok-gu", slug="bono-dong", name="본오동"),
     dict(city="anyang", gu="manan-gu", slug="anyang-dong", name="안양동"),
+    # 주요 행정동 보강(대도시 검색 수요 지역)
+    dict(city="suwon", gu="paldal-gu", slug="hwaseo-dong", name="화서동"),
+    dict(city="suwon", gu="yeongtong-gu", slug="maetan-dong", name="매탄동"),
+    dict(city="suwon", gu="gwonseon-gu", slug="gwonseon-dong", name="권선동"),
+    dict(city="seongnam", gu="bundang-gu", slug="sunae-dong", name="수내동"),
+    dict(city="seongnam", gu="bundang-gu", slug="gumi-dong", name="구미동"),
+    dict(city="seongnam", gu="bundang-gu", slug="imae-dong", name="이매동"),
+    dict(city="yongin", gu="giheung-gu", slug="singal-dong", name="신갈동"),
+    dict(city="yongin", gu="suji-gu", slug="sanghyeon-dong", name="상현동"),
+    dict(city="goyang", gu="ilsandong-gu", slug="janghang-dong", name="장항동"),
+    dict(city="goyang", gu="deogyang-gu", slug="haengsin-dong", name="행신동"),
+    dict(city="goyang", gu="ilsanseo-gu", slug="tanhyeon-dong", name="탄현동"),
+    dict(city="anyang", gu="dongan-gu", slug="hogye-dong", name="호계동"),
+    dict(city="bucheon", gu="wonmi-gu", slug="yeokgok-dong", name="역곡동"),
+    dict(city="ansan", gu="danwon-gu", slug="seonbu-dong", name="선부동"),
 ]
 for _d in DONGS:
     _d["key"] = f"{_d['gu']}/{_d['slug']}"
