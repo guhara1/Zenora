@@ -163,6 +163,12 @@ DONGS = [
     dict(city="ansan", gu="danwon-gu", slug="choji-dong", name="초지동"),
     dict(city="anyang", gu="dongan-gu", slug="pyeongchon-dong", name="평촌동"),
     dict(city="anyang", gu="dongan-gu", slug="beomgye-dong", name="범계동"),
+    # 각 구 대표 행정동 1개 보강(대표동 없던 구 채움)
+    dict(city="yongin", gu="cheoin-gu", slug="gimnyangjang-dong", name="김량장동"),
+    dict(city="bucheon", gu="sosa-gu", slug="songnae-dong", name="송내동"),
+    dict(city="bucheon", gu="ojeong-gu", slug="wonjong-dong", name="원종동"),
+    dict(city="ansan", gu="sangnok-gu", slug="bono-dong", name="본오동"),
+    dict(city="anyang", gu="manan-gu", slug="anyang-dong", name="안양동"),
 ]
 for _d in DONGS:
     _d["key"] = f"{_d['gu']}/{_d['slug']}"
